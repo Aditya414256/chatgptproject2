@@ -1,30 +1,23 @@
-import { defineConfig, devices } from '@playwright/test';
-
+import { defineConfig } from "@playwright/test";
 export default defineConfig({
-  testDir: './tests/e2e',
-  fullyParallel: false, // keep false: DB state shared between tests
-  forbidOnly: !!process.env.CI,
-  retries: process.env.CI ? 1 : 0,
+  testDir: "tests/browser",
   workers: 1,
-  reporter: 'html',
-  timeout: 60_000,
   use: {
-    baseURL: 'http://localhost:5173',
-    trace: 'on-first-retry',
-    screenshot: 'only-on-failure',
-    video: 'retain-on-failure',
+    baseURL: "http://127.0.0.1:5127",
+    launchOptions: process.env.CHROME_BIN
+      ? {
+          executablePath: process.env.CHROME_BIN,
+          args: [
+            "--no-sandbox",
+            "--no-zygote",
+            "--disable-dev-shm-usage",
+          ],
+        }
+      : {},
   },
-  projects: [
-    {
-      name: 'chromium',
-      use: { ...devices['Desktop Chrome'] },
-    },
-  ],
-  // Start the dev server automatically before tests
   webServer: {
-    command: 'npm run dev',
-    url: 'http://localhost:5173',
-    reuseExistingServer: !process.env.CI,
-    timeout: 30_000,
+    command: "npm run build && npm run preview -- --host 127.0.0.1 --port 5127 --strictPort",
+    url: "http://127.0.0.1:5127",
+    reuseExistingServer: false,
   },
 });

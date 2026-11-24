@@ -1,153 +1,43 @@
-# FindMedicine
+# FindMedicine · neighbourhood pharmacy counter
 
-A medicine ordering web app — place orders for pickup or home delivery from nearby pharmacies.
+An original React and TypeScript college project with a pine-green storefront, collection-slip graphics, searchable medicine catalogue and a pharmacy order desk.
 
-> **College project. Not for real medical use.**
+## Start the browser demo
 
----
+Install Node 22.12 or later, then run:
 
-## Demo Accounts
-
-All accounts use password: **`Test1234!`**
-
-| Email | Role | Store |
-|---|---|---|
-| `customer@findmedicine.test` | Customer | — |
-| `store1@findmedicine.test` | Store Owner | Shirpur Medical Store |
-| `store2@findmedicine.test` | Store Owner | HealthPlus Pharmacy |
-| `store3@findmedicine.test` | Store Owner | Apollo Pharmacy Shirpur |
-| `store4@findmedicine.test` | Store Owner | Lifeline Medicals |
-
----
-
-## Setup
-
-### 1. Prerequisites
-
-- Node.js 22.12+
-- A Supabase project (already configured: `ilumcvjseevbpkgtscth`)
-
-### 2. Environment Variables
-
-```bash
-cp .env.example .env
-```
-
-Edit `.env` and fill in your Supabase URL and anon key (find them in your Supabase project → Settings → API).
-
-### 3. Install Dependencies
-
-```bash
-npm install
-```
-
-### 4. Apply Database Migrations
-
-**Option A — Supabase CLI (requires `supabase login`):**
-```bash
-npx supabase link --project-ref ilumcvjseevbpkgtscth
-npx supabase db push
-```
-If asked for your database password, type it in the terminal.
-
-**Option B — Supabase SQL Editor (paste manually):**
-1. Open the [Supabase SQL Editor](https://supabase.com/dashboard/project/ilumcvjseevbpkgtscth/sql/new)
-2. Paste and run `supabase/migrations/00001_schema.sql`
-3. Run `supabase/migrations/00002_prescription_access.sql`.
-4. Use `supabase/seed.sql` only for a fresh demo database; preserve existing accounts and inventory.
-
-### 5. Create Demo Users (if seed didn't create them)
-
-The seed tries to insert into `auth.users` directly. If that fails (expected on hosted Supabase), create each user manually:
-
-1. Go to Supabase Dashboard → Authentication → Users → Add user
-2. For each user, set **User Metadata** (raw_user_meta_data) like:
-   ```json
-   {"full_name": "Demo Customer", "phone": "9876500005", "role": "customer"}
-   ```
-3. The `handle_new_user` trigger creates the profile row automatically.
-4. After creating store-owner users, link them to their stores:
-   ```sql
-   UPDATE public.stores SET owner_id = '<user-uuid>' WHERE name = 'Shirpur Medical Store';
-   ```
-
-### 6. Run the App
-
-```bash
+```sh
+npm ci
 npm run dev
 ```
-Opens at [http://localhost:5173](http://localhost:5173)
 
----
+Open the URL printed by Vite. Click **Customer counter** in one tab. In a second normal tab on the same origin, click **Pharmacy workspace**. Each tab keeps its own role. Use pincode **425405** and select **Riverbend Pharmacy** to send an order to the demo owner. The demo includes 16 medicines and four stores. Use invented details and sample files. Orders and stock are shared by tabs in the same browser profile. Reset the demo by clearing site data.
 
-## Testing the Notification Flow (Two Browser Windows)
+For pickup, prescription items show a carry-your-prescription reminder. Delivery asks for an address and, when necessary, a JPG, PNG or PDF. The owner can accept or reject orders, update inventory, and verify the customer's code at collection or delivery. Browser notifications require permission and an open tab. Demo expiry runs while the app is open.
 
-1. Open **Window 1** (normal): Log in as `store1@findmedicine.test`
-   - Click **Enable alerts** on the dashboard
-   - Keep this tab open
+## Separate Supabase project
 
-2. Open **Window 2** (incognito): Log in as `customer@findmedicine.test`
-   - Add any medicine to cart → Choose fulfilment → Select Shirpur Medical Store → Place order
+Demo mode is the default, including when an older .env contains credentials. For a **new** hosted project, apply supabase/migrations/202611240001_counter.sql in its SQL Editor. This creates account profiles, a catalogue, stores, order policies, order functions, a private prescription bucket, Realtime publication membership and the expiry job. The hosted database uses email/password authentication; create a customer account and a store owner account from the signup form. In Inventory the owner must set a store address, pincode, prices and positive stock, then open the store. Use the seed script below to create demo stores and accounts.
 
-3. Watch **Window 1**: A toast notification appears in real time, the unread badge increments, and a browser notification fires (if permission granted).
+Copy .env.example to .env.local, set VITE_BACKEND_MODE=supabase and enter only that project's VITE_SUPABASE_URL and client-side anon/publishable key. Restart Vite. The browser demo and hosted data are independent. The hosted migration has not been applied to a live project.
 
----
+## Checks
 
-## Running Playwright Tests
-
-```bash
-# Install browsers once:
+```sh
+npm run build
+node --test tests/model.test.mjs
 npx playwright install chromium
-
-# Run all tests:
-npx playwright test
-
-# Run with UI:
-npx playwright test --ui
+npm run test:e2e
 ```
 
-> Tests require the app to be running (`npm run dev`) and `.env` to have valid credentials.
+College project. Not for real medical use.
 
----
+### Hosted demo accounts
 
-## Project Structure
+After applying the migration to your new demo project, set SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY in your terminal and run:
 
-```
-src/
-├── config/
-│   ├── brand.ts          ← Product name (rename here)
-│   └── constants.ts
-├── components/
-│   ├── layout/           ← AppLayout, Footer
-│   └── ui/               ← Button, Card, Badge, Input, etc.
-├── features/
-│   ├── auth/             ← Login, Signup, AuthProvider, ProtectedRoute
-│   ├── catalog/          ← Medicine catalog
-│   ├── cart/             ← Cart state and page
-│   ├── orders/           ← Fulfilment, store selection, prescription, review, tracking
-│   └── store-dashboard/  ← Dashboard, order detail, inventory, store setup
-├── lib/
-│   ├── supabase.ts       ← Typed Supabase client
-│   └── utils.ts
-└── types/
-    └── database.ts       ← Full TypeScript DB types
-supabase/
-├── migrations/
-│   └── 00001_schema.sql  ← Full schema + RLS + RPC functions + pg_cron
-└── seed.sql              ← Medicines, stores, inventory, demo users
-tests/
-└── e2e/                  ← Playwright tests
+```sh
+node --experimental-strip-types scripts/seed-demo.mjs
 ```
 
----
-
-## Tech Stack
-
-- **React 19 + TypeScript + Vite** — Frontend
-- **Tailwind CSS v4** — Styling with custom design tokens
-- **Supabase** — Auth, Postgres, RLS, Realtime, Storage
-- **TanStack Query** — Data fetching and caching
-- **React Router v7** — Navigation
-- **Zod** — Form validation
-- **lucide-react** — Icons
-- **Playwright** — End-to-end tests
+The script creates customer@findmedicine.test and store1@findmedicine.test through store4@findmedicine.test. Each new account's random password is printed once in that terminal. Save the passwords privately. Rerunning preserves existing accounts and store inventory. Use a normal browser window for the customer and a private window for the owner when testing hosted notifications. The browser-only demo uses the two role buttons and needs no passwords.
