@@ -1,7 +1,37 @@
-node_modules
-dist
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Build
+dist/
+build/
+
+# Environment
 .env
 .env.local
-playwright-report
-test-results
+.env.*.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
 .DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+
+# Testing
+test-results/
+playwright-report/
+
+# Supabase
+.supabase/
+.temp/
+supabase/.temp/
+
